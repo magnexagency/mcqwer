@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>গণতন্ত্র ও নির্বাচন - MCQ Quiz Game</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #2980b9;
+            --success: #27ae60;
+            --error: #c0392b;
+            --bg: #f4f6f7;
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: 'SolaimanLipi', 'Kalpurush', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #7f8c8d;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .question-box {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        .option-item {
+            background: #fdfefe;
+            border: 2px solid #bdc3c7;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+        .option-item:hover:not(.disabled) {
+            background: #ebf5fb;
+            border-color: var(--secondary);
+        }
+        .option-item.correct {
+            background: #d4efdf !important;
+            border-color: var(--success) !important;
+            color: #145a32;
+        }
+        .option-item.wrong {
+            background: #ffadad !important;
+            border-color: var(--error) !important;
+            color: #78281f;
+        }
+        .option-item.disabled {
+            cursor: not-allowed;
+        }
+        .btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #1f618d;
+        }
+        .score-card {
+            text-align: center;
+            display: none;
+        }
+        .score-card h2 {
+            color: var(--success);
+            font-size: 28px;
+        }
+        .score-details {
+            font-size: 18px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="game-container">
+    <h1>অধ্যায় ০৮: বাংলাদেশের গণতন্ত্র ও নির্বাচন</h1>
+    
+    <div id="quiz-screen">
+        <div class="quiz-header">
+            <span id="question-count">প্রশ্ন ১ / ৩৫</span>
+            <span id="score-tracker">সঠিক: ০ | ভুল: ০</span>
+        </div>
+        <div class="question-box" id="question-text">প্রশ্ন লোড হচ্ছে...</div>
+        <ul class="options-list" id="options-list"></ul>
+        <button class="btn" id="next-btn" style="display:none;" onclick="nextQuestion()">পরবর্তী প্রশ্ন</button>
+    </div>
+
+    <div class="score-card" id="score-card">
+        <h2>কুইজ সমাপ্ত!</h2>
+        <div class="score-details" id="score-details"></div>
+        <button class="btn" onclick="restartQuiz()">পুনরায় খেলুন</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "১০৪১. 'গণতন্ত্র প্রতিষ্ঠার প্রধান মাধ্যম হলো—",
+            options: ["ক্ষমতার লড়াই করা", "সুষ্ঠু নির্বাচন", "অধিক জনগণ", "নতুন সরকার"],
+            answer: 1
+        },
+        {
+            question: "১০৪২. বাংলাদেশের সরকারব্যবস্থা কেমন?",
+            options: ["স্বৈরতান্ত্রিক", "গণতান্ত্রিক", "রাজতান্ত্রিক", "একনায়কতান্ত্রিক"],
+            answer: 1
+        },
+        {
+            question: "১০৪৩. যে শাসনব্যবস্থায় জনগণ সার্বভৌম ক্ষমতা প্রয়োগের অংশ নেওয়ার অধিকার পায়, তাকে কী বলে?",
+            options: ["সুশীল সমাজ", "সাধারণ জনগণ", "গণতন্ত্র", "সরকার"],
+            answer: 2
+        },
+        {
+            question: "১০৪৪. প্রত্যক্ষ গণতন্ত্রের প্রচলন ছিল কোথায়?",
+            options: ["প্রাচীন গ্রিসে", "প্রাচীন ইতালিতে", "প্রাচীন আমেরিকায়", "প্রাচীন রোমে"],
+            answer: 0
+        },
+        {
+            question: "১০৪৫. রাষ্ট্রীয় নীতিনির্ধারণে গণতন্ত্রে কোনটিকে সর্বাধিক গুরুত্ব দেওয়া হয়?",
+            options: ["জনগণের স্বার্থ", "দেশের উন্নয়ন", "ক্ষমতাসীন দলের স্বার্থ", "প্রধানমন্ত্রীর স্বার্থ"],
+            answer: 0
+        },
+        {
+            question: "১০৪৬. গণতন্ত্রকে মূর্খের শাসনব্যবস্থা বলেছেন কে?",
+            options: ["প্লেটো", "লক", "হবস", "রুশো"],
+            answer: 0
+        },
+        {
+            question: "১০৪৭. কত সালে ব্রিটিশ শাসনের অবসান ঘটে?",
+            options: ["১৯৪৭ সালে", "১৯৪৮ সালে", "১৯৪৯ সালে", "১৯৫০ সালে"],
+            answer: 0
+        },
+        {
+            question: "১০৪৮. অবিভক্ত পাকিস্তানে কত সালে সর্বপ্রথম জাতীয় পরিষদের সাধারণ নির্বাচন অনুষ্ঠিত হয়?",
+            options: ["১৯৫৬ সালে", "১৯৬৮ সালে", "১৯৭০ সালে", "১৯৭২ সালে"],
+            answer: 2
+        },
+        {
+            question: "১০৪৯. বঙ্গবন্ধু সপরিবারে শহীদ হন কত তারিখে?",
+            options: ["১৫ আগস্ট, ১৯৭৪", "১৫ আগস্ট, ১৯৭৫", "১৫ জুলাই, ১৯৭৫", "১৫ আগস্ট, ১৯৭৭"],
+            answer: 1
+        },
+        {
+            question: "১০৫০. বাংলাদেশে কত বছর সেনা শাসনের অধীনে ছিল?",
+            options: ["১২ বছর", "১৩ বছর", "১৪ বছর", "১৫ বছর"],
+            answer: 3
+        },
+        {
+            question: "১০৫১. কততম সংবিধান সংশোধনীর মাধ্যমে বাংলাদেশে মন্ত্রিপরিষদ শাসিত সরকার ব্যবস্থা পুনঃপ্রবর্তিত হয়েছে?",
+            options: ["চতুর্থ সংশোধনী", "অষ্টম সংশোধনী", "দশম সংশোধনী", "দ্বাদশ সংশোধনী"],
+            answer: 3
+        },
+        {
+            question: "১০৫২. কোন সংশোধনীর মাধ্যমে তত্ত্বাবধায়ক সরকার ব্যবস্থা প্রতিষ্ঠা পায়?",
+            options: ["দশম সংশোধনী", "একাদশ সংশোধনী", "দ্বাদশ সংশোধনী", "ত্রয়োদশ সংশোধনী"],
+            answer: 3
+        },
+        {
+            question: "১০৫৩. ৯ম জাতীয় সংসদ নির্বাচনে সংখ্যাগরিষ্ঠতা অর্জন করে—",
+            options: ["আওয়ামী লীগ", "বিএনপি", "মহাজোট", "চারদলীয় জোট"],
+            answer: 2
+        },
+        {
+            question: "১০৫৪. বর্তমানে প্রতিনিধিমূলক সরকার বলতে কোনটিকে বোঝায়?",
+            options: ["দলীয় সরকার", "স্থানীয় সরকার", "কেন্দ্রীয় সরকার", "আঞ্চলিক সরকার"],
+            answer: 0
+        },
+        {
+            question: "১০৫৫. রাজনৈতিক দল গঠন করার কারণ—",
+            options: ["দেশের মধ্যে ত্রাস সৃষ্টি করা", "বৈধভাবে রাষ্ট্রীয় ক্ষমতা দখল করা", "নির্বাচনে অংশগ্রহণ করা", "ক্ষমতার লড়াই করা"],
+            answer: 1
+        },
+        {
+            question: "১০৫৬. গণতান্ত্রিক ব্যবস্থার সাফল্যের পূর্বশর্ত হলো—",
+            options: ["মানুষের অংশগ্রহণ", "সুসংগঠিত রাজনৈতিক দল", "বিরোধী দলের উপস্থিতি", "মিছিল মিটিং"],
+            answer: 1
+        },
+        {
+            question: "১০৫৭. গণতান্ত্রিক ব্যবস্থায় বিকল্প সরকার কে?",
+            options: ["সুশীল সমাজ", "বিরোধী দল", "মন্ত্রিপরিষদ", "সাধারণ জনগণ"],
+            answer: 1
+        },
+        {
+            question: "১০৫৮. কোনটি ছাড়া গণতান্ত্রিক ব্যবস্থা চিন্তা করা যায় না?",
+            options: ["নির্বাচন", "রাজনৈতিক দল", "সুশীল সমাজ", "রাজনৈতিক সংগঠন"],
+            answer: 0
+        },
+        {
+            question: "১০৫৯. জনগণের সার্বভৌমত্বের প্রয়োগ ঘটে কিসের মাধ্যমে?",
+            options: ["নির্বাচন", "সরকার", "আন্দোলন", "গণভোট"],
+            answer: 0
+        },
+        {
+            question: "১০৬০. প্রাচীনকালে কোথায় প্রত্যক্ষ গণতন্ত্র প্রচলিত ছিল?",
+            options: ["গ্রিসের নগররাষ্ট্রে", "রোমের সাম্রাজ্যে", "জার্মানিতে", "ইংল্যান্ডে"],
+            answer: 0
+        },
+        {
+            question: "১০৬১. বাংলাদেশের জনগণের ভোট দানে সর্বনিম্ন বয়সসীমা হলো—",
+            options: ["১৭ বছর", "১৮ বছর", "১৯ বছর", "২০ বছর"],
+            answer: 1
+        },
+        {
+            question: "১০৬২. বাংলাদেশে কোন প্রকারের নির্বাচন পদ্ধতি চালু আছে?",
+            options: ["প্রত্যক্ষ", "পরোক্ষ", "নিরপেক্ষ", "গণভোট"],
+            answer: 0
+        },
+        {
+            question: "১০৬৩. বাংলাদেশকে কয়টি নির্বাচনি এলাকায় ভাগ করা হয়েছে?",
+            options: ["২৫০টি", "২৮৮টি", "৩০০টি", "৩২৫টি"],
+            answer: 2
+        },
+        {
+            question: "১০৬৪. প্রধান নির্বাচন কমিশনারকে নিয়োগ দান করেন—",
+            options: ["প্রধানমন্ত্রী", "রাষ্ট্রপতি", "স্পিকার", "প্রধান বিচারপতি"],
+            answer: 1
+        },
+        {
+            question: "১০৬৫. নির্বাচন কমিশনের সাথে সহায়তামূলক ভূমিকা পালন করে সরকারের কোন বিভাগ?",
+            options: ["আইন বিভাগ", "নির্বাহী বিভাগ", "বিচার বিভাগ", "সামরিক বাহিনী"],
+            answer: 1
+        },
+        {
+            question: "১০৬৬. কত সালের আদেশ অনুযায়ী নির্বাচনি অপরাধ ও তার দণ্ড নির্ধারণ করা হয়েছে?",
+            options: ["১৯৭০ সালের", "১৯৭১ সালের", "১৯৭২ সালের", "১৯৭৩ সালের"],
+            answer: 2
+        },
+        {
+            question: "১০৬৭. নির্বাচনি আচরণবিধি ভঙ্গের সর্বনিম্ন শান্তি কত?",
+            options: ["৬ মাসের সশ্রম কারাদণ্ড", "১ বছরের সশ্রম কারাদণ্ড", "২ বছরের সশ্রম কারাদণ্ড", "৩ বছরের সশ্রম কারাদণ্ড"],
+            answer: 0
+        },
+        {
+            question: "১০৬৮. গণতন্ত্রে ব্যক্তির অবস্থান হলো—",
+            options: ["i ও ii", "ii ও iii", "i ও iii", "i, ii ও iii"],
+            answer: 1
+        },
+        {
+            question: "১০৬৯. গণতান্ত্রিক শাসন প্রতিষ্ঠিত হলে—",
+            options: ["i ও ii", "ii ও iii", "i ও iii", "i, ii ও iii"],
+            answer: 0
+        },
+        {
+            question: "১০৭০. গণতন্ত্রের অপর নাম হলো—",
+            options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
+            answer: 1
+        },
+        {
+            question: "১০৭১. মন্ত্রিপরিষদ শাসিত সরকারের মূল বৈশিষ্ট্য হলো—",
+            options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
+            answer: 2
+        },
+        {
+            question: "১০৭২. দেশের উন্নয়নে রাজনৈতিক দল পালন করে—",
+            options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
+            answer: 1
+        },
+        {
+            question: "১০৭৩. সুষ্ঠু গণতান্ত্রিক পরিবেশ বজায় রাখার ক্ষেত্রে অপরিহার্য—",
+            options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
+            answer: 2
+        },
+        {
+            question: "১০৭৪. প্রিজাইডিং/পোলিং অফিসার সংক্রান্ত উদ্দীপক—",
+            options: ["i ও ii", "ii ও iii", "i ও iii", "i, ii ও iii"],
+            answer: 1
+        },
+        {
+            question: "১০৭৫. নির্বাচনি আইন লঙ্ঘনকারী বিষয় হলো—",
+            options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"],
+            answer: 0
+        }
+    ];
+
+    let currentIdx = 0;
+    let scoreCorrect = 0;
+    let scoreWrong = 0;
+    let answered = false;
+
+    const questionText = document.getElementById("question-text");
+    const optionsList = document.getElementById("options-list");
+    const nextBtn = document.getElementById("next-btn");
+    const questionCount = document.getElementById("question-count");
+    const scoreTracker = document.getElementById("score-tracker");
+    const quizScreen = document.getElementById("quiz-screen");
+    const scoreCard = document.getElementById("score-card");
+    const scoreDetails = document.getElementById("score-details");
+
+    function loadQuestion() {
+        answered = false;
+        nextBtn.style.display = "none";
+        const q = quizData[currentIdx];
+        questionText.innerText = q.question;
+        questionCount.innerText = `প্রশ্ন ${currentIdx + 1} / ${quizData.length}`;
+        scoreTracker.innerText = `সঠিক: ${scoreCorrect} | ভুল: ${scoreWrong}`;
+        
+        optionsList.innerHTML = "";
+        q.options.forEach((opt, idx) => {
+            const li = document.createElement("li");
+            li.className = "option-item";
+            li.innerText = opt;
+            li.onclick = () => selectOption(idx, li);
+            optionsList.appendChild(li);
+        });
+    }
+
+    function selectOption(selectedIdx, element) {
+        if (answered) return;
+        answered = true;
+
+        const q = quizData[currentIdx];
+        const options = optionsList.children;
+
+        if (selectedIdx === q.answer) {
+            element.classList.add("correct");
+            scoreCorrect++;
+        } else {
+            element.classList.add("wrong");
+            options[q.answer].classList.add("correct");
+            scoreWrong++;
+        }
+
+        for (let li of options) {
+            li.classList.add("disabled");
+        }
+
+        scoreTracker.innerText = `সঠিক: ${scoreCorrect} | ভুল: ${scoreWrong}`;
+        
+        if (currentIdx < quizData.length - 1) {
+            nextBtn.style.display = "block";
+        } else {
+            setTimeout(showScore, 1000);
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        loadQuestion();
+    }
+
+    function showScore() {
+        quizScreen.style.display = "none";
+        scoreCard.style.display = "block";
+        const total = quizData.length;
+        const percentage = ((scoreCorrect / total) * 100).toFixed(2);
+        
+        scoreDetails.innerHTML = `
+            মোট প্রশ্ন: <b>${total}</b> টি<br>
+            সঠিক উত্তর: <b style="color: #27ae60;">${scoreCorrect}</b> টি<br>
+            ভুল উত্তর: <b style="color: #c0392b;">${scoreWrong}</b> টি<br>
+            সফলতার হার (Percentage): <b style="color: #2980b9;">${percentage}%</b>
+        `;
+    }
+
+    function restartQuiz() {
+        currentIdx = 0;
+        scoreCorrect = 0;
+        scoreWrong = 0;
+        quizScreen.style.display = "block";
+        scoreCard.style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
